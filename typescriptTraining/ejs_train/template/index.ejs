@@ -1,0 +1,12 @@
+<script>
+let x = JSON.parse('<%- aVar %>')
+
+console.log(x)
+
+
+x.forEach((element) => {
+    const chart = element.JsonChart;
+    console.log("chart", chart);
+    i++;
+  });
+</script>

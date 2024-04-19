@@ -1,0 +1,12 @@
+<script>
+let x = JSON.parse('[{"id":"sadsa1","JsonChart":{"data":[{"x":["giraffes","orangutans","monkeys"],"y":[20,14,23],"type":"bar"}]}},{"id":"sadsa2","JsonChart":{"data":[{"x":["giraffes","orangutans","monkeys"],"y":[20,14,23],"type":"bar"}]}},{"id":"sadsa3","JsonChart":{"data":[{"x":["giraffes","orangutans","monkeys"],"y":[20,14,23],"type":"bar"}]}}]')
+
+console.log(x)
+
+
+x.forEach((element) => {
+    const chart = element.JsonChart;
+    console.log("chart", chart);
+    i++;
+  });
+</script>
