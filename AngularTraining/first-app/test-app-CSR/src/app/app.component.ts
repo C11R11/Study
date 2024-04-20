@@ -1,6 +1,6 @@
 import { NgFor } from '@angular/common';
 import { Component } from '@angular/core';
-import { NewComponentComponent } from "./new-component/new-component.component";
+import { FormtestComponent } from "./formtest/formtest.component";
 
 
 @Component({
@@ -8,7 +8,7 @@ import { NewComponentComponent } from "./new-component/new-component.component";
     standalone: true,
     templateUrl: './app.component.html',
     styleUrl: './app.component.css',
-    imports: [NgFor, NewComponentComponent]
+    imports: [NgFor, FormtestComponent]
 })
 export class AppComponent {
   title = 'Test Change Title';
