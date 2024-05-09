@@ -1,0 +1,32 @@
+{
+  "name": "expresstypescript",
+  "version": "1.0.0",
+  "description": "test rest api ",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node ./src/index.ts",
+    "clrun": "npm run build && node ./dist/index.js",
+    "build": "tsc",
+    "test": "jest",
+    "TDD": "jest --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "-": "^0.0.1",
+    "@types/supertest": "^6.0.2",
+    "express": "^4.19.2",
+    "save-dev": "^0.0.1-security"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.12.8",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.0",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
