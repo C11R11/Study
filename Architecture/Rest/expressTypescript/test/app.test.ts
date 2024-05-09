@@ -1,5 +1,13 @@
-const request = require("supertest");
+//import fs from "fs";
 
+let originalData;
+
+beforeAll(() => {
+ // originalData = JSON.parse(fs.readFileSync("data/albums.json").toString());
+});
+afterAll(() => console.log("After all stuff"));
+
+const request = require("supertest");
 const app = require("../src/app").app;
 
 describe("Health checks", () => {
@@ -9,10 +17,20 @@ describe("Health checks", () => {
       .expect("Content-Type", /json/)
       .expect(200);
   });
+
+  test("GET the original data before CRUD operations", () => {
+    return request(app)
+      .get("/api/v2/albums/")
+      .set("Accept", "application/json")
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .then((response) => {
+        originalData = response.body.data;
+      });
+  });
 });
 
-describe("Album cycle", () => {
-
+describe("Album CRUD", () => {
   let id_new: string;
   let fake_album = {
     title: "Supertest!",
@@ -33,7 +51,7 @@ describe("Album cycle", () => {
     artist: "Supertest",
     genre: "Supertest",
     year: 2024,
-    tracks: ["Supertest", "patached"]   ,
+    tracks: ["Supertest", "patached"],
     label: "Supertest",
     selling_information: {
       certifications: "No info",
@@ -42,7 +60,7 @@ describe("Album cycle", () => {
     singles: ["Supertest"],
   };
 
-  test("Adding a fake one", async () => {
+  test("POST a fake one", async () => {
     const response = await request(app)
       .post("/api/v2/albums/")
       .send(fake_album)
@@ -52,7 +70,7 @@ describe("Album cycle", () => {
     id_new = response.body.data.id;
   });
 
-  test("Checking the new album data", () => {
+  test("GET the new album data", () => {
     return request(app)
       .get("/api/v2/albums/" + id_new)
       .set("Accept", "application/json")
@@ -64,11 +82,27 @@ describe("Album cycle", () => {
       });
   });
 
-  test("Modify the new album data", () => {
+    test("Get invalid album", () => {
+      return request(app)
+        .get("/api/v2/albums/" + -1)
+        .set("Accept", "application/json")
+        .expect("Content-Type", /json/)
+        .expect(404)
+    });
+
+    test("PATCH invalid id", () => {
+      return request(app)
+        .patch("/api/v2/albums/" + -1)
+        .set("Accept", "application/json")
+        .expect("Content-Type", /json/)
+        .expect(404)
+    });
+
+  test("PATCH the new album data", () => {
     return request(app)
       .patch("/api/v2/albums/" + id_new)
       .set("Accept", "application/json")
-      .send({ title: "SupePatachedrtest!",   })
+      .send({ title: "SupePatachedrtest!", tracks: ["Supertest", "patached"] })
       .expect("Content-Type", /json/)
       .expect(200)
       .then((response) => {
@@ -78,4 +112,30 @@ describe("Album cycle", () => {
       });
   });
 
+  test("DELETE the new album data", () => {
+    return request(app)
+      .delete("/api/v2/albums/" + id_new)
+      .set("Accept", "application/json")
+      .expect("Content-Type", /json/)
+      .expect(200);
+  });
+
+  test("DELETE no valid id", () => {
+    return request(app)
+      .delete("/api/v2/albums/" + -1)
+      .set("Accept", "application/json")
+      .expect("Content-Type", /json/)
+      .expect(404);
+  });
+
+  test("GET all the data is back from original", () => {
+    return request(app)
+      .get("/api/v2/albums/")
+      .set("Accept", "application/json")
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .then((response) => {
+        expect(response.body.data).toEqual(originalData);
+      });
+  });
 });
