@@ -1,11 +1,21 @@
 import fs from "fs";
 import express from "express";
 import { json } from "express";
+import morgan from "morgan";
 
 const app = express();
 
+app.use(morgan("dev"))
+
 //this one here is an important middleware to capture the users json data
 app.use(json());
+
+//custom middleware
+app.use((req, res, next)=>
+  {
+    console.log("Custom middleware :)")
+    next()
+  })
 
 let albums = [];
 
@@ -21,22 +31,22 @@ function SaveDBToJson(jsonToSave) {
 
 SyncDB();
 
-app.get("/api/v2/status", (req, res) => {
+function ApiStatus(req, res) {
   res.status(200).json({
     status: "success",
     data: {},
   });
-});
+}
 
-app.get("/api/v2/albums", (req, res) => {
+function GetAllAlbums(req, res) {
   res.status(200).json({
     status: "success",
     results: albums.length,
     data: albums,
   });
-});
+}
 
-app.get("/api/v2/albums/:id", (req, res) => {
+function GetAlbum(req, res) {
   const album = albums.find((x: { id: string }) => x.id == req.params.id);
 
   if (typeof album != "undefined") {
@@ -47,11 +57,11 @@ app.get("/api/v2/albums/:id", (req, res) => {
   } else {
     res.status(404).json({ status: "fail", message: "invalid id" });
   }
-});
+}
 
-app.patch("/api/v2/albums/:id", (req, res) => {
+const UpdateAlbum = (req, res) => {
   let album = albums.find((x: { id: string }) => x.id == req.params.id);
-  
+
   if (typeof album != "undefined") {
     const target_object = req.body;
     const keys_1 = Object.keys(album);
@@ -76,9 +86,9 @@ app.patch("/api/v2/albums/:id", (req, res) => {
   } else {
     res.status(404).json({ status: "fail", message: "invalid id" });
   }
-});
+};
 
-app.post("/api/v2/albums", (req, res) => {
+const CreatAlbum = (req, res) => {
   const Id = albums[albums.length - 1].id + 1;
   const newAlbum = Object.assign({ id: Id }, req.body);
   albums.push(newAlbum);
@@ -88,9 +98,9 @@ app.post("/api/v2/albums", (req, res) => {
     status: "success",
     data: newAlbum,
   });
-});
+};
 
-app.delete("/api/v2/albums/:id", (req, res) => {
+const DeleteAlbum = (req, res) => {
   console.log("q albums->", albums.length);
   const result = albums.filter((album) => album.id != req.params.id);
   console.log("q albums->", result.length);
@@ -106,7 +116,15 @@ app.delete("/api/v2/albums/:id", (req, res) => {
   } else {
     res.status(404).json({ status: "fail", message: "invalid id" });
   }
-});
+};
+
+app.route("/api/v2/status").get(ApiStatus);
+app.route("/api/v2/albums").get(GetAllAlbums).post(CreatAlbum);
+app
+  .route("/api/v2/albums/:id")
+  .get(GetAlbum)
+  .patch(UpdateAlbum)
+  .delete(DeleteAlbum);
 
 function startServer(port: number) {
   app.listen(port, "0.0.0.0", () => {
