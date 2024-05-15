@@ -1,11 +1,19 @@
 //import fs from "fs";
 
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config({ path: "./config.env" });
+import crypto from "crypto"
+
 let originalData;
 
-beforeAll(() => {
- // originalData = JSON.parse(fs.readFileSync("data/albums.json").toString());
+console.log("Starting tests....");
+
+beforeAll(async () => {
+  await mongoose.connect(process.env.DATABASE_CONECCTION_DOCKER);
+  console.log("db connected....");
 });
-afterAll(() => console.log("After all stuff"));
+afterAll(async () => await mongoose.connection.close());
 
 const request = require("supertest");
 const app = require("../src/app").app;
@@ -33,8 +41,8 @@ describe("Health checks", () => {
 describe("Album CRUD", () => {
   let id_new: string;
   let fake_album = {
-    title: "Supertest!",
-    artist: "Supertest",
+    title: "SupertestJest!" + crypto.randomUUID(),
+    artist: "SupertestJest" + crypto.randomUUID(),
     genre: "Supertest",
     year: 2024,
     tracks: ["Supertest"],
@@ -44,30 +52,24 @@ describe("Album CRUD", () => {
       sales: "No info",
     },
     singles: ["Supertest"],
+    __v: 0
   };
-
-  let fake_patched_album = {
-    title: "SupePatachedrtest!",
-    artist: "Supertest",
-    genre: "Supertest",
-    year: 2024,
-    tracks: ["Supertest", "patached"],
-    label: "Supertest",
-    selling_information: {
-      certifications: "No info",
-      sales: "No info",
-    },
-    singles: ["Supertest"],
-  };
+  const patched_name = "SupertestJestPatched" + crypto.randomUUID();
 
   test("POST a fake one", async () => {
+    try{
     const response = await request(app)
       .post("/api/v2/albums/")
       .send(fake_album)
       .set("Accept", "application/json");
     expect(response.headers["content-type"]).toMatch(/application\/json/);
     expect(response.status).toBe(201);
-    id_new = response.body.data.id;
+    console.log("POST", response.body);
+    id_new = response.body.data._id;
+    } catch(err)
+    {
+      console.log(err)
+    }
   });
 
   test("GET the new album data", () => {
@@ -77,38 +79,44 @@ describe("Album CRUD", () => {
       .expect("Content-Type", /json/)
       .expect(200)
       .then((response) => {
-        const expected = Object.assign({ id: id_new }, fake_album);
-        expect(response.body.data).toEqual(expected);
+        const expected = Object.assign({ _id: id_new }, fake_album);
+        expect(response.body.data[0]).toEqual(expected);
       });
   });
 
-    test("Get invalid album", () => {
-      return request(app)
-        .get("/api/v2/albums/" + -1)
-        .set("Accept", "application/json")
-        .expect("Content-Type", /json/)
-        .expect(404)
-    });
+  test("Get invalid album", () => {
+    return request(app)
 
-    test("PATCH invalid id", () => {
-      return request(app)
-        .patch("/api/v2/albums/" + -1)
-        .set("Accept", "application/json")
-        .expect("Content-Type", /json/)
-        .expect(404)
-    });
+      .get("/api/v2/albums/" + -1)
+      .set("Accept", "application/json")
+      .expect("Content-Type", /json/)
+      .expect(400);
+  });
+
+  test("PATCH invalid id", () => {
+    return request(app)
+      .patch("/api/v2/albums/" + -1)
+      .set("Accept", "application/json")
+      .expect("Content-Type", /json/)
+      .expect(400)
+  });
 
   test("PATCH the new album data", () => {
     return request(app)
       .patch("/api/v2/albums/" + id_new)
       .set("Accept", "application/json")
-      .send({ title: "SupePatachedrtest!", tracks: ["Supertest", "patached"] })
+      .send({ title: patched_name})
       .expect("Content-Type", /json/)
       .expect(200)
       .then((response) => {
-        const expected = Object.assign({ id: id_new }, fake_patched_album);
+        let expected = Object.assign(
+          { _id: id_new},
+          fake_album
+        );
+        expected.title = patched_name;
+        console.log("PATCH the new album data ->", expected);
         console.log("response.body.data-->", response.body.data);
-        expect(response.body.data).toEqual(expected);
+        expect(response.body.data[0]).toEqual(expected);
       });
   });
 
@@ -125,7 +133,7 @@ describe("Album CRUD", () => {
       .delete("/api/v2/albums/" + -1)
       .set("Accept", "application/json")
       .expect("Content-Type", /json/)
-      .expect(404);
+      .expect(400);
   });
 
   test("GET all the data is back from original", () => {

@@ -7,7 +7,7 @@
     "start": "ts-node ./src/index.ts",
     "clrun": "npm run build && node ./dist/index.js",
     "build": "tsc",
-    "test": "jest",
+    "test": "jest --verbose --detectOpenHandles",
     "TDD": "jest --watch"
   },
   "author": "",

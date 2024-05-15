@@ -42,11 +42,22 @@ docker exec -it b3c6e4fd4abc bash
 use admin
 db.createUser( { user: "admin", pwd: "SUPERSECRETPASSWORD", roles: [ "userAdminAnyDatabase", "dbAdminAnyDatabase","readWriteAnyDatabase"] } )
 
-#See the users created 
+#See the users created (admins) 
 use admin
 db.system.users.find()
 
-#Auth
+#The users can be created per database
+#This one is to create a user admin for the records database
+use records
+db.createUser(
+  {
+    user: "recordsUserAdmin",
+    pwd: "password",
+    roles: [ { role: "userAdmin", db: "records" } ]
+  }
+)
+
+#Auth: to pass credential inside mongosh
 db.auth("user", "password")
 
 #Conner with compass
