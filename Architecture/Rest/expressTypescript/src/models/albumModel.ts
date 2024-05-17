@@ -9,6 +9,11 @@ interface IAlbumSchema {
     sales: String;
   };
   singles: [String];
+  ratingsAverage: Number;
+  ratingsQuantity: Number;
+  imageCover: String;
+  images: [String];
+  createdAt: Date;
   title: String;
   tracks: [String];
   year: Number;
@@ -32,6 +37,26 @@ class AlbumModel {
       type: String,
       required: [true, "It's needed an artist?"],
       unique: true,
+    },
+    imageCover: {
+      type: String,
+      required: [true, "A tour must have a cover image"],
+    },
+    images: [String],
+    createdAt: {
+      type: Date,
+      default: new Date(Date.now()),
+      select: false,
+    },
+    ratingsAverage: {
+      type: Number,
+      default: 3,
+      min: [1, "Rating must be above 1.0"],
+      max: [5, "Rating must be below 5.0"],
+    },
+    ratingsQuantity: {
+      type: Number,
+      default: 0,
     },
     tracks: [String],
     year: Number,
@@ -63,9 +88,8 @@ class AlbumModel {
   }
 
   public async GetAllAlbums() {
-    
     try {
-      const findModel = await this.albumModel.find({ });
+      const findModel = await this.albumModel.find({});
       return findModel;
       console.log("GetAlbum album....", findModel);
     } catch (err) {
@@ -103,10 +127,13 @@ async function main() {
     .then(() => console.log("DB connection successful!"));
 
   const x = new AlbumModel();
+  const y = new Date();
   const out = await x.CreateAlbum({
     title: "Supertest2!",
     artist: "Supertest",
     genre: "Supertest",
+    ratingsAverage: 1,
+    ratingsQuantity: 0,
     year: 2024,
     tracks: ["Supertest"],
     label: "Supertest",
@@ -114,6 +141,9 @@ async function main() {
       certifications: "No info",
       sales: "No info",
     },
+    imageCover: "asdasd",
+    images: ["asd"],
+    createdAt: new Date(Date.now()),
     singles: ["Supertest"],
   });
 
